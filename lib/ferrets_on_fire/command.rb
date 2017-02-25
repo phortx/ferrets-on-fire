@@ -4,8 +4,6 @@ class FerretsOnFire::Command
   attr_reader :name, :desc, :default, :action_block
   attr_accessor :global_options, :options, :args
 
-  include FerretsOnFire::DSL
-
   public def initialize(name, desc, default, &block)
     @name = name.to_sym
     @desc = desc
@@ -17,9 +15,5 @@ class FerretsOnFire::Command
 
   public def action(&block)
     @action_block = block
-  end
-
-  public def run
-    yield @block
   end
 end

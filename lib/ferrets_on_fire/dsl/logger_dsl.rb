@@ -1,9 +1,10 @@
 require 'colorize'
 require 'benchmark'
+require 'highline'
 
-module FerretsOnFire::DSL::Logger
+module FerretsOnFire::DSL::LoggerDSL
   COLORS = {
-      info: :white,
+      info: nil,
       warn: :yellow,
       error: :red,
       success: :green,
@@ -16,7 +17,7 @@ module FerretsOnFire::DSL::Logger
       warn: '⚠️ ',
       error: '‼️️ ',
       success: '✨ ',
-      question: '❓ ',
+      question: "\n❓ ",
       action: '⚙️ '
   }.freeze
 
@@ -25,7 +26,7 @@ module FerretsOnFire::DSL::Logger
       warn: '[!]',
       error: '[X]',
       success: '[✔]',
-      question: '[?]',
+      question: "\n[?]",
       action: '[$]'
   }.freeze
 
@@ -34,9 +35,14 @@ module FerretsOnFire::DSL::Logger
       warn: '',
       error: '',
       success: '',
-      question: ' >',
+      question: ' > ',
       action: ''
   }.freeze
+
+
+  public def banner(string, color: :white, background: :black)
+    puts string.colorize(color: color, background: background)
+  end
 
   # Outputs a info message
   # @param [String] msg The message
@@ -68,10 +74,34 @@ module FerretsOnFire::DSL::Logger
 
   # Generates a question with the specified msg. If output is true (default) it will be printed.
   # @param [String] msg The message
-  # @param [Boolean] output (Optional, default is true). Print the question?
-  # @return [String] The question
-  public def question(msg, output = true)
-    puts log(msg, :question) if output
+  # @param [Array<Object>] options Array of option
+  # @return [Object] The chosen option value
+  public def choose(msg, options, default: nil)
+    linebreak
+
+    HighLine.new.choose do |menu|
+      menu.prompt = log(msg + (default.nil? ? '' : " (Default: #{default})"), :question)
+      menu.flow = :columns_across
+      menu.default = default unless default.nil?
+      menu.index_suffix = ') '
+
+      options.each do |opt|
+        menu.choice(opt) { return opt }
+      end
+    end
+  end
+
+  public def yes_no(msg, default = true)
+    answer = nil
+
+    until answer == '' || answer =~ /^(y|n)$/i
+      y = default ? 'Y' : 'y'
+      n = default ? 'n' : 'N'
+      answer = HighLine.new.ask(log("#{msg} (#{y}/#{n})", :question))
+      answer = default ? 'y' : 'n' if answer == ''
+    end
+
+    answer.downcase == 'y'
   end
 
 
@@ -79,21 +109,44 @@ module FerretsOnFire::DSL::Logger
     puts
   end
 
-
-  public def crash(msg, output, command: nil, exit_on_failure: true)
-    error msg
-    puts
-    puts ' ============='
-    puts "COMMAND: #{command}" unless command.nil?
-    puts output
-    puts ' ============='
-    puts
-    exit 1 if exit_on_failure
+  public def highlight(str)
+    str.light_blue
   end
 
-  # Logs that an action will happen. You have to call action_end after that
+
+  public def crash(msg, output, command: nil, exit: true)
+    puts
+    error msg
+    puts
+    puts '=====================[ CRASH REPORT ]====================='.red
+
+    unless command.nil?
+      puts
+      puts 'COMMAND: '.red
+      puts command
+    end
+
+    puts
+    puts 'ERROR:'.red
+    puts output
+    puts
+    puts '=========================================================='.red
+    puts
+    exit 1 if exit
+  end
+
+  public def action(msg)
+    print log(msg, :action)
+
+    return_value = block_given? ? yield : nil
+
+    puts "\r#{log(msg, :success)}"
+    return_value
+  end
+
+
   # @param [String] msg Message to display
-  public def action(msg, &block)
+  private def _shell_action(msg)
     print log(msg, :action, '  ...  ')
     cmd_output = ''
     bm = ::Benchmark.measure { cmd_output = yield }
@@ -112,6 +165,7 @@ module FerretsOnFire::DSL::Logger
 
     info = info.empty? ? '' : "[#{info}] "
 
-    "#{prefix} #{info}#{msg}#{suffix}".send(color)
+    output = "#{prefix} #{info}#{msg}#{suffix}"
+    color.nil? ? output : output.send(color)
   end
 end

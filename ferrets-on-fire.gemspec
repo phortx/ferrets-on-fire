@@ -19,4 +19,5 @@ Gem::Specification.new do |s|
   s.add_dependency 'highline', '~> 1.7'
   s.add_dependency 'colorize', '~> 0.8'
   s.add_dependency 'gli', '~> 2.15'
+  s.add_dependency 'rugged', '~> 0.25'
 end

@@ -1,15 +1,4 @@
-module FerretsOnFire::DSL::Declaration
-  public def bundle(dir: nil)
-    # Set bundler parallel jobs count
-    if run('sysctl -n hw.ncpu', quiet: true, return_exit_code: true).zero?
-      number_of_cores = run('sysctl -n hw.ncpu', quiet: true).strip.to_i - 1
-      run("bundle config --global jobs #{number_of_cores}", quiet: true)
-    end
-
-    run 'bundle', dir: dir, as: 'bundler'
-  end
-
-
+module FerretsOnFire::DSL::DeclarationDSL
   public def description(desc)
     @desc = desc
   end

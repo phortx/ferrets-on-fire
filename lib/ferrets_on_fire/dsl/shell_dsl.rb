@@ -1,4 +1,15 @@
-module FerretsOnFire::DSL::Shell
+module FerretsOnFire::DSL::ShellDSL
+  public def bundle(dir: nil)
+    # Set bundler parallel jobs count
+    if run('sysctl -n hw.ncpu', quiet: true, return_exit_code: true).zero?
+      number_of_cores = run('sysctl -n hw.ncpu', quiet: true).strip.to_i - 1
+      run("bundle config --global jobs #{number_of_cores}", quiet: true)
+    end
+
+    run 'bundle', dir: dir, as: 'bundler'
+  end
+
+
   # Runs a shell command. Stderr is redirected to Stdout
   # @param [String]  cmd              Command to run
   # @param [String]  dir              Directory to run the command in
@@ -17,23 +28,23 @@ module FerretsOnFire::DSL::Shell
     cmd = build_command(cmd, dir, rails_env, bundler)
 
     # Run the command and print the output if wished
-    output, status = exec(cmd, quiet, as)
+    output, status = execute_shell_cmd(cmd, quiet, as)
 
     # Error handling
     if status.nonzero? && return_exit_code == false
-      crash "COMMAND EXITED WITH #{status}!", output, command: cmd, exit_on_failure: exit_on_failure
+      crash "Shell command exited with status code #{status}!", output, command: cmd, exit_on_failure: exit_on_failure
     end
 
     return_exit_code ? status : output
   end
 
 
-  # Executes a shell command in the specified dir. Includes benchmarking and debug output.
+  # Executes a shell command in the specified dir. Includes benchmarking
   # @param [String] cmd        Command to run
   # @param [String] quiet      Optional. Suppress output
   # @param [String] label      Optional. Label
   # @return [Array] 0 => output, 1 => exit code
-  private def exec(cmd, quiet = false, label = nil)
+  private def execute_shell_cmd(cmd, quiet = false, label = nil)
     label ||= cmd
 
     # Run the command
@@ -41,7 +52,7 @@ module FerretsOnFire::DSL::Shell
       cmd_output = `#{cmd} 2>&1`
       status = $?.to_i
     else
-      cmd_output, status = action(label) { `#{cmd} 2>&1` }
+      cmd_output, status = _shell_action(label) { `#{cmd} 2>&1` }
     end
 
     # Return exit code and output
@@ -49,7 +60,7 @@ module FerretsOnFire::DSL::Shell
   end
 
 
-  def build_command(cmd, dir, rails_env, bundler)
+  private def build_command(cmd, dir, rails_env, bundler)
     result = ''
     result += "cd #{dir} && " unless dir.nil?
     result += "RAILS_ENV=#{rails_env} " unless rails_env.nil?
