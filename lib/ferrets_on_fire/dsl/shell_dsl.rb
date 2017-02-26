@@ -32,7 +32,7 @@ module FerretsOnFire::DSL::ShellDSL
 
     # Error handling
     if status.nonzero? && return_exit_code == false
-      crash "Shell command exited with status code #{status}!", output, command: cmd, exit_on_failure: exit_on_failure
+      crash "Shell command exited with status code #{status}!", output, command: cmd, exit: exit_on_failure
     end
 
     return_exit_code ? status : output
