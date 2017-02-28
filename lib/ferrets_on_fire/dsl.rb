@@ -14,6 +14,7 @@ module FerretsOnFire::DSL
   end
 
   public def root
+    require 'bundler'
     ::Bundler.root
   end
 
