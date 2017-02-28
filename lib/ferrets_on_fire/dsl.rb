@@ -14,7 +14,7 @@ module FerretsOnFire::DSL
   end
 
   public def root
-    Bundler.root
+    ::Bundler.root
   end
 
   public def load_lib
