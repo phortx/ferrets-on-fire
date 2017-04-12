@@ -136,7 +136,7 @@ module FerretsOnFire::DSL::LoggerDSL
   end
 
   public def action(msg)
-    print log(msg, :action)
+    print log(msg, :action) if $stdout.tty?
 
     return_value = block_given? ? yield : nil
 
@@ -147,7 +147,7 @@ module FerretsOnFire::DSL::LoggerDSL
 
   # @param [String] msg Message to display
   private def _shell_action(msg)
-    print log(msg, :action, '  ...  ')
+    print log(msg, :action, '  ...  ') if $stdout.tty?
     cmd_output = ''
     bm = ::Benchmark.measure { cmd_output = yield }
     time = '%.2f' % bm.real.round(2)
