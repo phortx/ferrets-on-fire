@@ -152,7 +152,7 @@ module FerretsOnFire::DSL::LoggerDSL
     bm = ::Benchmark.measure { cmd_output = yield }
     time = '%.2f' % bm.real.round(2)
     info = "#{time.rjust(6)}s"
-    puts "\r#{log(msg, :success, info)}"
+    puts ($stdout.tty? ? "\r" : '') + log(msg, :success, info)
 
     [cmd_output, $?.to_i]
   end
