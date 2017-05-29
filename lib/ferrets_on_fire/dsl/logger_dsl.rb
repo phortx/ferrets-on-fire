@@ -86,15 +86,9 @@ module FerretsOnFire::DSL::LoggerDSL
   end
 
   public def yes_no(msg, default = true)
-    answer = nil
-
-    until answer == '' || answer =~ /^(y|n)$/i
-      answer = get_prompt.yes?(log(msg, :question)) do |q|
-        q.default default
-      end
+    get_prompt.yes?(log(msg, :question)) do |q|
+      q.default default
     end
-
-    answer
   end
 
 
