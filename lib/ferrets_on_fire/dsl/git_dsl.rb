@@ -43,6 +43,15 @@ module FerretsOnFire::DSL::GitDSL
     tags
   end
 
+  public def find_git_branches(dir)
+    repo = _git_setup(dir)
+
+    # Find all tags
+    branches = []
+    repo.references.each('refs/heads/*') { |ref| branches << ref }
+    branches
+  end
+
   public def get_git_master_ref(dir)
     repo = _git_setup(dir)
     repo.ref('refs/remotes/origin/master')

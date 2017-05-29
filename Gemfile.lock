@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ferrets_on_fire (0.0.6)
+    ferrets_on_fire (0.0.8)
       colorize (~> 0.8)
       gli (~> 2.15)
       highline (~> 1.7)
