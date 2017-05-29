@@ -48,7 +48,7 @@ module FerretsOnFire::DSL::GitDSL
 
     # Find all tags
     branches = []
-    repo.references.each('refs/heads/*') { |ref| branches << ref }
+    repo.references.each('refs/remotes/origin/*') { |ref| branches << ref }
     branches
   end
 

@@ -1,6 +1,6 @@
 require 'colorize'
 require 'benchmark'
-require 'highline'
+require 'tty'
 
 module FerretsOnFire::DSL::LoggerDSL
   COLORS = {
@@ -77,17 +77,11 @@ module FerretsOnFire::DSL::LoggerDSL
   # @param [Array<Object>] options Array of option
   # @return [Object] The chosen option value
   public def choose(msg, options, default: nil)
-    linebreak
+    default_idx = default.nil? ? 0 : options.index(default)
 
-    HighLine.new.choose do |menu|
-      menu.prompt = log(msg + (default.nil? ? '' : " (Default: #{default})"), :question)
-      menu.flow = :columns_across
-      menu.default = default unless default.nil?
-      menu.index_suffix = ') '
-
-      options.each do |opt|
-        menu.choice(opt) { return opt }
-      end
+    get_prompt.select(log(msg + (default.nil? ? '' : " (Default: #{default})"), :question), per_page: 7) do |menu|
+      menu.default default_idx + 1
+      options.each { |opt| menu.choice opt }
     end
   end
 
@@ -95,13 +89,17 @@ module FerretsOnFire::DSL::LoggerDSL
     answer = nil
 
     until answer == '' || answer =~ /^(y|n)$/i
-      y = default ? 'Y' : 'y'
-      n = default ? 'n' : 'N'
-      answer = HighLine.new.ask(log("#{msg} (#{y}/#{n})", :question))
-      answer = default ? 'y' : 'n' if answer == ''
+      answer = get_prompt.yes?(log(msg, :question)) do |q|
+        q.default default
+      end
     end
 
-    answer.downcase == 'y'
+    answer
+  end
+
+
+  private def get_prompt
+    TTY::Prompt.new(help_color: :white)
   end
 
 

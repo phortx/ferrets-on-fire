@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'colorize', '~> 0.8'
   s.add_dependency 'gli', '~> 2.15'
   s.add_dependency 'rugged', '~> 0.25'
+  s.add_dependency 'tty', '~> 0.7.0'
 
   s.add_development_dependency 'rspec', '~> 3.5.0'
 end
